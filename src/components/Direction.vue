@@ -4,7 +4,7 @@
         <v-list two-line>
             <template v-for="(item) in difficulties">
                 <v-subheader v-if="item.header" :key="item.header">{{ item.header }}</v-subheader>
-                <v-list-tile :to="item.name" avatar v-else :key="item.name">
+                <v-list-tile :to="item.path" avatar v-else :key="item.name">
                     <v-list-tile-avatar>
                         <img :src="item.avatar">
                     </v-list-tile-avatar>
@@ -38,13 +38,19 @@ export default {
   },
   created () {
     this.errors = []
-    axios.get('http://127.0.0.1:8000/api/directions/' + this.$route.params.name)
+    axios.get('http://127.0.0.1:8000/api/directions/' + this.$route.params.name, {
+      headers: {
+        'Authorization': localStorage.getItem('token')
+      }
+    })
       .then(response => {
         this.direction = response.data.direction
         this.difficulties = response.data.difficulties
         for (let index = 0; index < this.difficulties.length; index++) {
           this.difficulties[index].avatar = './../assets/google-logo.png'
-          this.difficulties[index].path = '/test/'
+          this.difficulties[index].path = '/directions/' +
+            this.$route.params.name + '/' +
+            this.difficulties[index].name
         }
         console.log(this.difficulties)
       })

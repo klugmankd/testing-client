@@ -1,132 +1,91 @@
 <template>
-    <v-stepper v-model="questionsStep">
-        <v-stepper-header>
-            <v-stepper-step v-for="(item, key) in questions" :step="key + 1" :complete="questionsStep > key + 1"
-                            :key="item.question.id"/>
-            <v-divider/>
-            <v-stepper-step :step="questions.length + 1" :complete="questionsStep > questions.length"/>
-        </v-stepper-header>
-        <v-stepper-items>
-            <v-stepper-content :step="key + 1" v-for="(item, key) in questions" :key="item.question.id">
-                <v-card color="lighten-1" class="mb-5">
-                    <div class="answers js__answers">
-                        <p>{{ item.question.text }}</p>
-                        <v-checkbox v-for="(answer) in item.question.answers" :key="answer.id"
-                                    :label="answer.text"
-                                    v-model="answers"
-                                    :value="answer.id"
-                        />
-                        <span>Отмеченные имена: {{ answers }}</span>
-                    </div>
-                </v-card>
-                <v-btn color="info" v-if="answers.length > 0" @click.native="questionsStep = key + 2"
-                       v-on:click="send(item, answers)">Apply</v-btn>
-                <v-btn color="info" v-else disabled="">Apply</v-btn>
-                <v-btn color="error" v-on:click="pause()">Pause</v-btn>
-            </v-stepper-content>
-            <v-stepper-content :step="questions.length + 1">
-                <v-card color="lighten-1" class="mb-5">
-                    ok
-                </v-card>
-                <v-btn color="info" v-if="answers.length > 0" @click.native="questionsStep = key + 2"
-                       v-on:click="send(item, answers)">Apply</v-btn>
-                <v-btn color="info" v-else disabled="">Apply</v-btn>
-                <v-btn color="error" v-on:click="pause()">Pause</v-btn>
-            </v-stepper-content>
-        </v-stepper-items>
+    <v-stepper v-model="questionsStep" vertical>
+        <ul>
+            <li v-for="(item, key) in test.questions" :key="item.index" class="item">
+                <v-stepper-step :step="key + 1" :complete="questionsStep > key + 1"/>
+                <v-stepper-content
+                        :step="key + 1">
+                    <v-card color="lighten-1" class="mb-5">
+                        <div class="answers js__answers">
+                            <p>{{ item.question.text }}</p>
+                            <v-checkbox v-for="(answer) in item.question.answers" :key="answer.id"
+                                        :label="answer.text"
+                                        v-model="answers"
+                                        :value="answer.id"
+                            />
+                            <!--<span>Отмеченные имена: {{ answers }}</span>-->
+                        </div>
+                    </v-card>
+                    <v-btn color="info" v-if="answers.length > 0" @click.native="questionsStep = key + 2"
+                           v-on:click="send(test.id, item, answers)">Apply</v-btn>
+                    <v-btn color="info" v-else disabled="">Apply</v-btn>
+                    <v-btn color="error" v-on:click="pause()">Pause</v-btn>
+                </v-stepper-content>
+            </li>
+        </ul>
     </v-stepper>
 </template>
 
 <script>
-import Timer from './Timer'
+import axios from 'axios'
 
 export default {
-  name: 'Test',
-  components: {'test-timer': Timer},
-  data: () => ({
-    questionsStep: 0,
-    answerSelector: '.js__answers',
-    answers: [],
-    direction: {},
-    difficulty: {},
-    questions: [
-      {
-        id: 1,
-        question: {
-          id: 1,
-          text: 'Test question 1',
-          points: 10,
-          answers: [
-            {id: 1, text: 'true'},
-            {id: 2, text: 'false'},
-            {id: 3, text: 'false'},
-            {id: 4, text: 'false'}
-          ]
-        }
-      },
-      {
-        id: 2,
-        question: {
-          id: 2,
-          text: 'Test question 2',
-          points: 10,
-          answers: [
-            {id: 5, text: 'true'},
-            {id: 6, text: 'false'},
-            {id: 7, text: 'false'},
-            {id: 8, text: 'false'}
-          ]
-        }
-      },
-      {
-        id: 3,
-        question: {
-          id: 3,
-          text: 'Test question 3',
-          points: 10,
-          answers: [
-            {id: 9, text: 'true'},
-            {id: 10, text: 'false'},
-            {id: 11, text: 'false'},
-            {id: 12, text: 'false'}
-          ]
-        }
-      },
-      {
-        id: 4,
-        question: {
-          id: 4,
-          text: 'Test question 4',
-          points: 10,
-          answers: [
-            {id: 13, text: 'true'},
-            {id: 14, text: 'false'},
-            {id: 15, text: 'false'},
-            {id: 16, text: 'false'}
-          ]
-        }
-      },
-      {
-        id: 5,
-        question: {
-          id: 5,
-          text: 'Test question 5',
-          points: 10,
-          answers: [
-            {id: 17, text: 'true'},
-            {id: 18, text: 'false'},
-            {id: 19, text: 'false'},
-            {id: 20, text: 'false'}
-          ]
-        }
+  data () {
+    return {
+      questionsStep: 1,
+      test: {},
+      answers: []
+    }
+  },
+  created () {
+    axios.get(`http://127.0.0.1:8000/api/test/current`, {
+      headers: {
+        'Authorization': localStorage.getItem('token')
       }
-    ]
-  }),
+    }).then(response => {
+      this.test = JSON.parse(response.data)
+      for (let index = 0; index < this.test.questions.length; index++) {
+        this.test.questions[index].index = index + 1
+        console.log(this.test.questions[index].question.answers)
+      }
+      console.log(this.test)
+    })
+  },
   methods: {
-    send: function (question, answers) {
+    send: function (test, question, answers) {
       console.log("send users' answers")
-      console.log(answers)
-      if (question === this.questions[this.questions.length - 1]) {
+      console.log({
+        test: test,
+        question: question.id,
+        answers: answers
+      })
+      /* let request = {test: test, question: question.id, answers: answers}
+      let config = {
+        headers: {
+          'Authorization': localStorage.getItem('token')
+        }
+      } */
+      /* axios.post('http://127.0.0.1:8000/api/test/answer', request, config)
+        .then(response => {
+          console.log(JSON.parse(response.data))
+        })
+        .catch(reason => {
+          console.log(reason)
+        }) */
+      /* axios({
+        method: 'POST',
+        url: 'http://127.0.0.1:8000/api/test/answer',
+        headers: {
+          'Authorization': localStorage.getItem('token')
+        },
+        data: {
+          test: test,
+          question: question.id,
+          answers: answers
+        }
+      }) */
+
+      if (question === this.test.questions[this.test.questions.length - 1]) {
         console.log('last question')
       }
       this.answers = []
@@ -134,15 +93,15 @@ export default {
     pause: function () {
       console.log('pause')
     }
-  },
-  beforeCreate () {
-    console.log('getting data from api')
   }
 }
 </script>
 
-<style scoped>
+<style>
+    .item:first-child .stepper__content {
+        display: block!important;
+    }
     .answers {
-        padding: 2%;
+        padding: 2px;
     }
 </style>

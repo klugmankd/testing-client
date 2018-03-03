@@ -12,7 +12,8 @@
         </v-card-title>
         <v-card-actions>
             <div class="block">
-                <a href="http://127.0.0.1:8000/connect/google" class="logo">
+                <a @click="signIn()"
+                   class="logo">
                     <img src="./../assets/google-logo.png">
                 </a>
                 <!--<v-btn flat color="orange">Explore</v-btn>-->
@@ -28,10 +29,27 @@ export default {
     drawer: false,
     drawerRight: true,
     right: null,
-    left: null
+    left: null,
+    authUrl: 'http://127.0.0.1:8000/connect/google'
   }),
   props: {
     source: String
+  },
+  methods: {
+    signIn: function () {
+      let newWindow = window.open(this.authUrl,
+        'Google OAuth2',
+        'width=420,height=230,resizable=yes,scrollbars=yes,status=yes'
+      )
+      newWindow.focus()
+      this.interval = setInterval(function () {
+        if (newWindow.closed && localStorage.getItem('token').length > 0) {
+          clearInterval(this)
+          window.location.href = '#/directions'
+        }
+      }, 30
+      )
+    }
   }
 }
 </script>

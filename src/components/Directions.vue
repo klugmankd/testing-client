@@ -31,16 +31,20 @@ export default {
   props: {
     source: String
   },
-  created () {
+  created: function () {
     this.errors = []
-    axios.get('http://127.0.0.1:8000/api/directions')
+    axios.get('http://127.0.0.1:8000/api/directions', {
+      headers: {
+        'Authorization': localStorage.getItem('token')
+      }
+    })
       .then(response => {
         this.items = response.data
         for (let index = 0; index < this.items.length; index++) {
           this.items[index].avatar = './../assets/google-logo.png'
           this.items[index].path = '/directions/' + this.items[index].name
         }
-        console.log(this.items)
+        console.log(response.data)
       })
       .catch(e => {
         this.errors.push(e)

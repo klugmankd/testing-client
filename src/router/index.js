@@ -5,16 +5,13 @@ import Directions from '@/components/Directions'
 import Direction from '@/components/Direction'
 import AuthRedirect from '@/components/AuthRedirect'
 import Test from '@/components/Test'
-/*
-import Stepper from '@/components/Stepper'
-*/
 
 Vue.use(Router)
 
 export default new Router({
   routes: [
     {
-      path: '/login',
+      path: '/',
       name: 'Login',
       component: Login
     },
@@ -34,7 +31,7 @@ export default new Router({
       component: Direction
     },
     {
-      path: '/test',
+      path: '/directions/:direction/:difficulty',
       name: 'Test',
       component: Test
     }
